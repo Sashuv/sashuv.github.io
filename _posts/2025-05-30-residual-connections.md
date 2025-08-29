@@ -87,7 +87,7 @@ class NeuralNetwork(nn.Module):
                 x = layer(x) if i == len(self.layers) - 1 else F.relu(layer(x))
         return x
 
-# Testing
+
 model = NeuralNetwork(shortcut_connections=True)  # or False
 out = model(input)
 loss = criterion(out, target)
