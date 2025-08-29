@@ -39,3 +39,7 @@ plugins:
   - jekyll-postfiles
 
 remote_theme: piharpi/jekyll-klise
+
+collections:
+  projects:
+    output: true
