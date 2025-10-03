@@ -5,11 +5,106 @@ layout: post
 usemathjax: true
 ---
 
+# Visualizing Distribution Change in Forward Diffusion Process
 
-Here is an example of a block equation:
+Let's derive how the variance changes in a **forward diffusion process** and how to properly scale noise.
 
-$$
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
+---
 
-You can continue writing text here.
+## Step 1: Initial Data
+
+Let \(X_0\) be the initial data. We assume:
+
+\[
+X_0 \sim \mathcal{N}(\mu, 1)
+\]
+
+That is, \(X_0\) follows a normal distribution with mean \(\mu\) and variance 1.
+
+---
+
+## Step 2: Adding Noise
+
+Suppose we add Gaussian noise \(\epsilon\) to \(X_0\):
+
+\[
+X_1 = X_0 + \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
+\]
+
+If we add the same variance at every step:
+
+\[
+\text{Var}(X_1) = \text{Var}(X_0) + \text{Var}(\epsilon) = 1 + 1 = 2
+\]
+
+This variance grows too quickly, which is undesirable.
+
+---
+
+## Step 3: Variance Scheduling
+
+To control the variance, we introduce a **variance scheduler** \( \beta_t \):
+
+\[
+\beta_t \in (0,1)
+\]
+
+- \( \beta_t \) defines how noise changes over time (linear, cosine, or any schedule).  
+- Usually, \( \beta_t \) is **very small**, e.g., 0.0001 to 0.02, so noise is added gradually.
+
+Now, we want:
+
+\[
+\epsilon \sim \mathcal{N}(0, \beta_t)
+\]
+
+and
+
+\[
+X_1 = X_0 + \epsilon
+\]
+
+---
+
+## Step 4: Scaling Noise and Previous Image
+
+Introduce constants \(a, b \in \mathbb{R}\) to scale the previous image and noise:
+
+\[
+X_1 = a X_0 + b \epsilon
+\]
+
+We want \(\epsilon \sim \mathcal{N}(0, \beta_t)\). If \(\epsilon \sim \mathcal{N}(0,1)\), we can scale it:
+
+\[
+b \epsilon = \sqrt{\beta_t} \epsilon \sim \mathcal{N}(0, \beta_t)
+\]
+
+because
+
+\[
+\text{Var}(\sqrt{\beta_t} \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t \cdot 1 = \beta_t
+\]
+
+---
+
+## Step 5: Final Forward Diffusion Step
+
+Therefore, the properly scaled forward diffusion step is:
+
+\[
+X_1 = a X_0 + \sqrt{\beta_t} \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
+\]
+
+- \(a\) scales the contribution of the previous image.  
+- \(\sqrt{\beta_t} \epsilon\) adds noise with the correct variance.  
+
+This ensures that the **variance increases gradually** as noise is added in each step.
+
+---
+
+*Optional:* You can include a visualization here:
+
+![Distribution Change](plot1.png)
+
+*Figure: Gradual variance increase in forward diffusion.*
