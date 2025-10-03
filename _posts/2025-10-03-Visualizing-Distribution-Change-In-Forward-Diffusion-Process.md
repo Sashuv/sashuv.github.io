@@ -1,16 +1,3 @@
----
-title: "Visualizing Distribution Change in Forward Diffusion Process"
-date: 2025-10-03
-layout: post
-usemathjax: true
----
-
-# Visualizing Distribution Change in Forward Diffusion Process
-
-In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise.
-
----
-
 ## Step 1: Initial Data
 
 Let \(X_0\) be the initial data. We assume:
@@ -45,10 +32,6 @@ This variance increases too quickly, which is undesirable.
 
 To control the variance growth, we introduce a **variance scheduler** \(\beta_t\):
 
-$$
-\beta_t \in (0, 1)
-$$
-
 - \(\beta_t\) defines how noise changes over time (linear, cosine, or any schedule).  
 - Typically, \(\beta_t\) is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
 
@@ -74,7 +57,7 @@ $$
 X_1 = a X_0 + b \epsilon
 $$
 
-We want \(\epsilon \sim \mathcal{N}(0, \beta_t)\). If \(\epsilon \sim \mathcal{N}(0,1)\), we can scale it:
+If \(\epsilon \sim \mathcal{N}(0,1)\), we can scale it to match the desired variance:
 
 $$
 b \epsilon = \sqrt{\beta_t} \, \epsilon \sim \mathcal{N}(0, \beta_t)
@@ -100,13 +83,3 @@ $$
 - \(\sqrt{\beta_t} \, \epsilon\) adds noise with the correct variance.  
 
 This ensures that the **variance increases gradually** as noise is added in each step.
-
----
-
-## Optional: Visualization
-
-You can include a plot showing the gradual variance increase:
-
-![Distribution Change](plot1.png)
-
-*Figure: Gradual variance increase in the forward diffusion process.*
