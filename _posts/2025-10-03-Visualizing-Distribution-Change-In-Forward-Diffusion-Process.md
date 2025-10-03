@@ -5,11 +5,13 @@ layout: post
 usemathjax: true
 ---
 
-
+# Visualizing Distribution Change in Forward Diffusion Process
 
 In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise.
 
 ---
+
+
 
 Let \\(X_0\\) be the initial data. We assume:
 
@@ -18,6 +20,8 @@ X_0 \sim \mathcal{N}(\mu, 1)
 $$
 
 That is, \\(X_0\\) follows a normal distribution with mean \\(\mu\\) and variance 1.
+
+---
 
 
 Suppose we add Gaussian noise \\(\epsilon\\) to \\(X_0\\):
@@ -33,6 +37,9 @@ $$
 $$
 
 This variance increases too quickly, which is undesirable.
+
+---
+
 
 
 To control the variance growth, we introduce a **variance scheduler** \\(\beta_t\\):
@@ -52,6 +59,8 @@ $$
 X_1 = X_0 + \epsilon
 $$
 
+---
+
 
 Introduce constants \\(a, b \in \mathbb{R}\\) to scale the previous image and noise:
 
@@ -70,6 +79,9 @@ because
 $$
 \text{Var}(\sqrt{\beta_t} \, \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t \cdot 1 = \beta_t
 $$
+
+---
+
 
 
 The properly scaled forward diffusion step is:
