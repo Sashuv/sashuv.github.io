@@ -5,7 +5,7 @@ layout: post
 usemathjax: true
 ---
 
-# Visualizing Distribution Change in Forward Diffusion Process
+
 
 In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise.
 
