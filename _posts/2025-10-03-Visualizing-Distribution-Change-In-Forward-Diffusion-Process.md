@@ -1,3 +1,17 @@
+---
+title: "Visualizing Distribution Change in Forward Diffusion Process"
+date: 2025-10-03
+layout: post
+usemathjax: true
+---
+
+# Visualizing Distribution Change in Forward Diffusion Process
+
+In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise.
+
+---
+
+
 ## Step 1: Initial Data
 
 Let \(X_0\) be the initial data. We assume:
