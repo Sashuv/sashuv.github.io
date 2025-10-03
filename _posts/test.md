@@ -1,7 +1,12 @@
-Euler’s identity is one of the most beautiful equations:
+---
+title: "My Math Post"
+usemathjax: true
+---
+
+Euler’s identity:
 
 $$
 e^{i\pi} + 1 = 0
 $$
 
-And the quadratic formula is inline: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+Inline: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
