@@ -11,8 +11,6 @@ In this post, we derive how the **variance changes in a forward diffusion proces
 
 ---
 
-## Step 1: Initial Data
-
 Let \\(X_0\\) be the initial data. We assume:
 
 $$
@@ -21,9 +19,6 @@ $$
 
 That is, \\(X_0\\) follows a normal distribution with mean \\(\mu\\) and variance 1.
 
----
-
-## Step 2: Adding Noise
 
 Suppose we add Gaussian noise \\(\epsilon\\) to \\(X_0\\):
 
@@ -39,9 +34,6 @@ $$
 
 This variance increases too quickly, which is undesirable.
 
----
-
-## Step 3: Variance Scheduling
 
 To control the variance growth, we introduce a **variance scheduler** \\(\beta_t\\):
 
@@ -60,9 +52,6 @@ $$
 X_1 = X_0 + \epsilon
 $$
 
----
-
-## Step 4: Scaling Noise and Previous Image
 
 Introduce constants \\(a, b \in \mathbb{R}\\) to scale the previous image and noise:
 
@@ -82,9 +71,6 @@ $$
 \text{Var}(\sqrt{\beta_t} \, \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t \cdot 1 = \beta_t
 $$
 
----
-
-## Step 5: Final Forward Diffusion Step
 
 The properly scaled forward diffusion step is:
 
