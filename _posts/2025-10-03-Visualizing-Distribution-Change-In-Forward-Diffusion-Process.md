@@ -6,6 +6,10 @@ usemathjax: true
 ---
 
 
+Here is an example of a block equation:
+
 $$
 \int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
 $$
+
+You can continue writing text here.
