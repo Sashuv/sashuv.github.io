@@ -14,7 +14,7 @@ In this post, we derive how the **variance changes in a forward diffusion proces
 
 ## Step 1: Initial Data
 
-Let \(X_0\) be the initial data. We assume:
+Let \\( X_0 \\) be the initial data. We assume:
 
 $$
 X_0 \sim \mathcal{N}(\mu, 1)
