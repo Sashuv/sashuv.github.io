@@ -7,133 +7,166 @@ usemathjax: true
 
 # Visualizing Distribution Change in Forward Diffusion Process
 
-In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise to ensure a controlled progression from data to pure Gaussian noise.
+In this post, we derive how the **variance changes in a forward diffusion process** and how to properly scale the added noise.
 
 ---
 
-## Step 1: Initial Data and Assumption
+## Step 1: Initial Data
 
-Let $X_0$ be the initial data (e.g., an image). While the true data distribution is complex, for mathematical tractability in the forward process, we often assume the data has been **normalized** to have a specific mean and variance.
+Let \(X_0\) be the initial data. We assume:
 
-We assume:
 $$
 X_0 \sim \mathcal{N}(\mu, 1)
 $$
 
-**Note on $\mu$:** In the context of Diffusion Models (specifically DDPM), the data is typically pre-processed to ensure the initial distribution is $\mathcal{N}(0, I)$, or at least $X_0$ is scaled such that its mean is $\approx 0$ (e.g., pixel values from $[0, 255]$ are scaled to $[-1, 1]$). For the purpose of deriving the $\text{variance scaling}$, we primarily focus on $\text{Var}(X_0) = 1$.
+That is, \(X_0\) follows a normal distribution with mean \(\mu\) and variance 1.  
+For simplicity in diffusion models, we often want \(\mu = 0\) and \(\text{Var}(X_0) = 1\).
 
 ---
 
-## Step 2: Uncontrolled Noise Addition (Undesirable)
+## Step 2: Adding Noise
 
-Suppose we add unscaled Gaussian noise $\epsilon$ with unit variance to $X_0$:
+Suppose we add Gaussian noise \(\epsilon\) to \(X_0\):
 
 $$
 X_1 = X_0 + \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 $$
 
 If we add the same variance at every step:
+
 $$
 \text{Var}(X_1) = \text{Var}(X_0) + \text{Var}(\epsilon) = 1 + 1 = 2
 $$
 
-This variance increases too quickly, resulting in complete noise (loss of signal) in very few steps, which is undesirable for a gradual process.
+This variance increases too quickly, which is undesirable.
 
 ---
 
-## Step 3: Introducing Variance Scheduling ($\beta_t$)
+## Step 3: Variance Scheduling
 
-To control the variance growth, we introduce a **variance scheduler** $\beta_t$:
+To control the variance growth, we introduce a **variance scheduler** \(\beta_t\):
 
-- $\beta_t$ defines the small amount of noise added at step $t$.
-- Typically, $\beta_t$ is very small (e.g., $0.0001$ to $0.02$) to ensure noise is added gradually.
+- \(\beta_t\) defines how noise changes over time (linear, cosine, or other schedules).  
+- Typically, \(\beta_t\) is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
 
-We now define the noise $\epsilon_t$ to satisfy:
+Now we want the noise to satisfy:
 
 $$
-\epsilon_t \sim \mathcal{N}(0, \beta_t)
+\epsilon \sim \mathcal{N}(0, \beta_t)
 $$
 
-The noise is added to the previous step's output $X_{t-1}$ (using $t=1$ for the first step):
+and the forward step becomes:
+
 $$
-X_1 = X_0 + \epsilon_1
+X_1 = X_0 + \epsilon
 $$
 
 ---
 
-## Step 4: Deriving the Scaling Factor $a$
+## Step 4: Scaling Noise and Previous Image
 
-To ensure that the final distribution at step $T$ is the **standard normal distribution** $\mathcal{N}(0, 1)$, and to stabilize the intermediate steps, we must **scale down** the signal $X_{t-1}$ when adding the noise.
-
-The general form of one forward diffusion step is:
-$$
-X_t = a_t X_{t-1} + b_t \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
-$$
-where $b_t = \sqrt{\beta_t}$ to ensure the noise term has variance $\beta_t$.
-
-The goal is to maintain $\text{Var}(X_t) = \text{Var}(X_{t-1})$ or, more commonly in $\text{DDPM}$, to maintain a well-defined relationship between the signal and noise. Following the $\text{DDPM}$ derivation where $X_t$ is constructed to converge to $\mathcal{N}(0, I)$, we enforce $\text{Var}(X_t) = 1$:
+Introduce constants \(a, b \in \mathbb{R}\) to scale the previous image and noise:
 
 $$
-\text{Var}(X_t) = \text{Var}(a_t X_{t-1} + \sqrt{\beta_t} \epsilon)
-$$
-Since $X_{t-1}$ and $\epsilon$ are independent:
-$$
-\text{Var}(X_t) = \text{Var}(a_t X_{t-1}) + \text{Var}(\sqrt{\beta_t} \epsilon)
-$$
-Assuming $\text{Var}(X_{t-1}) = 1$ (which is true at $t=1$ if $\text{Var}(X_0)=1$, and maintained if we enforce $\text{Var}(X_t)=1$):
-$$
-1 = a_t^2 \cdot \text{Var}(X_{t-1}) + \beta_t \cdot \text{Var}(\epsilon)
-$$
-$$
-1 = a_t^2 \cdot 1 + \beta_t \cdot 1
-$$
-Solving for $a_t$:
-$$
-a_t^2 = 1 - \beta_t \quad \implies \quad a_t = \sqrt{1 - \beta_t}
+X_1 = a X_0 + b \epsilon
 $$
 
-## Step 5: Single Forward Step and $\alpha_t$ Notation
-
-Let $\alpha_t = 1 - \beta_t$. The properly scaled forward diffusion step from $X_{t-1}$ to $X_t$ is:
+If \(\epsilon \sim \mathcal{N}(0,1)\), we can scale it to match the desired variance:
 
 $$
-q(X_t | X_{t-1}) = \mathcal{N}(X_t; \sqrt{\alpha_t} X_{t-1}, \beta_t I)
+b \epsilon = \sqrt{\beta_t} \, \epsilon \sim \mathcal{N}(0, \beta_t)
 $$
 
-Expressed as a linear transformation:
+because
+
 $$
-\mathbf{X}_t = \sqrt{\alpha_t} \mathbf{X}_{t-1} + \sqrt{\beta_t} \mathbf{\epsilon}, \quad \mathbf{\epsilon} \sim \mathcal{N}(\mathbf{0}, I)
+\text{Var}(\sqrt{\beta_t} \, \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t
 $$
 
-- $\sqrt{\alpha_t}$ scales the signal (the previous image).
-- $\sqrt{\beta_t}$ scales the noise $\mathbf{\epsilon}$ to ensure the correct variance $\beta_t$.
+Thus the forward step can be written as:
+
+$$
+X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon
+$$
 
 ---
 
-## Step 6: The Closed-Form Expression (Efficiency)
+## Step 5: Adjusting \(a\) for Variance Preservation
 
-The most critical part of the forward process is the ability to sample $\mathbf{X}_t$ directly from the initial data $\mathbf{X}_0$ without running the full iterative Markov chain (i.e., without knowing $X_1, X_2, \dots, X_{t-1}$).
+We want the resulting variance to stay 1 (so the distribution doesn't blow up):
 
-We define the cumulative product of the $\alpha_t$ terms as **alpha bar** ($\bar{\alpha}_t$):
+\[
+\text{Var}(X_1) = \text{Var}(a X_0 + \sqrt{\beta_t} \, \epsilon) = a^2 \text{Var}(X_0) + \beta_t \text{Var}(\epsilon)
+\]
+
+Assuming \(\text{Var}(X_0) = 1\) and \(\text{Var}(\epsilon) = 1\), we get:
+
+\[
+a^2 + \beta_t = 1
+\]
+
+\[
+a = \sqrt{1 - \beta_t}
+\]
+
+So the final forward diffusion step becomes:
+
+$$
+X_1 = \sqrt{1-\beta_1} \, X_0 + \sqrt{\beta_1} \, \epsilon
+$$
+
+Generally, for step \(t\):
+
+$$
+X_t = \sqrt{1-\beta_t} \, X_{t-1} + \sqrt{\beta_t} \, \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
+$$
+
+---
+
+## Step 6: Introducing \(\alpha_t\) for Efficiency
+
+Instead of writing \(\sqrt{1-\beta_t}\) every step, we define:
+
+$$
+\alpha_t = 1 - \beta_t
+$$
+
+So the forward step becomes:
+
+$$
+X_t = \sqrt{\alpha_t} \, X_{t-1} + \sqrt{1-\alpha_t} \, \epsilon
+$$
+
+- Using \(\alpha_t\) simplifies computations and makes code implementation easier.  
+- It also allows **precomputing cumulative products** over time for efficient sampling:
+
 $$
 \bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s
 $$
 
-By recursively substituting the expression for $X_{t-1}$, $X_{t-2}$, and so on, it can be proven that $X_t$ has a closed-form Gaussian distribution conditioned on $X_0$:
+Then the forward process can be sampled directly from:
 
 $$
-q(\mathbf{X}_t | \mathbf{X}_0) = \mathcal{N}(\mathbf{X}_t; \sqrt{\bar{\alpha}_t} \mathbf{X}_0, (1 - \bar{\alpha}_t) I)
+X_t = \sqrt{\bar{\alpha}_t} \, X_0 + \sqrt{1-\bar{\alpha}_t} \, \epsilon
 $$
 
-Expressed as a linear transformation:
-$$
-\mathbf{X}_t = \sqrt{\bar{\alpha}_t} \mathbf{X}_0 + \sqrt{1 - \bar{\alpha}_t} \mathbf{\epsilon}
-$$
+This avoids looping through all intermediate steps and is much more **computationally efficient**.
 
-### Why is this efficient?
+---
 
-1.  **Direct Sampling:** For any timestep $t$, we can **directly sample** $\mathbf{X}_t$ from $\mathbf{X}_0$ using the above equation in a single step, rather than $t$ sequential steps.
-2.  **Variance Control:** As $t \to T$ (the total number of steps):
-    - $\bar{\alpha}_t \to 0$, so the signal term $\sqrt{\bar{\alpha}_t} \mathbf{X}_0$ vanishes.
-    - $1 - \bar{\alpha}_t \to 1$, so the noise term $\sqrt{1 - \bar{\alpha}_t} \mathbf{\epsilon}$ converges to $\mathcal{N}(0, I)$.
-    - This mathematically guarantees that $\mathbf{X}_T$ is pure Gaussian noise, a required starting point for the reverse (generative) process.
+## Summary
+
+- Noise is gradually added to the original data using a small \(\beta_t\).  
+- Scaling constants \(a = \sqrt{1-\beta_t}\) and \(b = \sqrt{\beta_t}\) preserve variance.  
+- \(\alpha_t = 1-\beta_t\) simplifies calculations.  
+- Using cumulative \(\bar{\alpha}_t\) allows **direct sampling of \(X_t\)** without iterating through all steps.  
+
+This formulation is the foundation for **forward diffusion in DDPMs** (Denoising Diffusion Probabilistic Models).
+
+---
+
+*Optional Visualization:*
+
+![Forward Diffusion](plot1.png)
+
+*Figure: Gradual variance increase in the forward diffusion process.*
