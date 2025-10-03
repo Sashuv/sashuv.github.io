@@ -95,84 +95,88 @@ $$
 
 This ensures that the **variance increases gradually** as noise is added in each step.
 
-So now,  
+usemathjax: true
+
+So now,
 
 \[
 \text{Var}(X_1) = \text{Var}(X_0) + \text{Var}\big(\sqrt{\beta_t} \, \epsilon\big)
-\]  
+\]
 
 \[
 \text{Var}(X_1) = \text{Var}(X_0) + \beta_t \, \text{Var}(\epsilon)
-\]  
+\]
 
 \[
 \text{Var}(X_1) = 1 + \beta_t
-\]  
+\]
 
 ---
 
-Now finding \(a\):  
-We also scale the image at the previous timestep because there is no way we are getting \(\mu = 0\) with just this:  
+Now finding $\backslash(a\backslash)$:
+We also scale the image at the previous timestep because there is no way we are getting $\backslash(\mu = 0\backslash)$ with just this:
 
 \[
-X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon, 
+X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon,
 \quad \epsilon \sim \mathcal{N}(0,1)
-\]  
+\]
+
+We enforce $\backslash(\text{Var}(X_1) = 1\backslash)$ to maintain a standard normal distribution for the final latent variable $\backslash(X_T\backslash)$ (where $\backslash(T\backslash)$ is the total number of steps).
 
 \[
 \text{Var}(X_1) = \text{Var}\left(a X_0 + \sqrt{\beta_1}\,\epsilon\right) = 1
-\]  
+\]
+
+Since $\backslash(X_0\backslash)$ and $\backslash(\epsilon\backslash)$ are independent, the variance is additive:
 
 \[
 \text{Var}(a X_0) + \text{Var}(\sqrt{\beta_1}\,\epsilon) = 1
-\]  
+\]
+
+Substituting $\backslash(\text{Var}(X_0)=1\backslash)$ (by convention, or assuming a normalized initial input) and $\backslash(\text{Var}(\epsilon)=1\backslash)$:
 
 \[
 a^2 \, \text{Var}(X_0) + \beta_1 \, \text{Var}(\epsilon) = 1
-\]  
+\]
 
 \[
 a^2 + \beta_1 = 1
 \quad \Rightarrow \quad
 a = \sqrt{1 - \beta_1}
-\]  
+\]
 
-So now:  
+So now, the transition from $\backslash(X_0\backslash)$ to $\backslash(X_1\backslash)$ is:
 
 \[
 X_1 = \sqrt{1-\beta_1}\,X_0 + \sqrt{\beta_1}\,\epsilon
-\]  
+\]
 
-Generally,  
+Generally, the forward transition for any step $\backslash(t\backslash)$ is:
 
 \[
 X_t = \sqrt{1-\beta_t}\,X_{t-1} + \sqrt{\beta_t}\,\epsilon
-\]  
+\]
 
 ---
 
-### Introducing Alphas  
-To make the process more efficient, we define:  
+### Introducing Alphas
+
+To make the process more efficient, we define **alphas**:
 
 \[
 \alpha_t = 1 - \beta_t
-\]  
+\]
 
-and the cumulative product:  
+and the **cumulative product** of alphas:
 
 \[
 \bar{\alpha}_t = \prod_{s=1}^t \alpha_s
-\]  
+\]
 
-This allows us to directly write the forward diffusion at any timestep \(t\) as:  
+This allows us to directly write the forward diffusion at any timestep $\backslash(t\backslash)$ as a function of the initial data $\backslash(X_0\backslash)$ and noise $\backslash(\epsilon\backslash)$:
 
 \[
 X_t = \sqrt{\bar{\alpha}_t}\,X_0 + \sqrt{1 - \bar{\alpha}_t}\,\epsilon
-\]  
+\]
 
-This is efficient because instead of simulating each step iteratively, we can **sample \(X_t\) at any arbitrary timestep** in closed form using \(\bar{\alpha}_t\).
-
-
-
-
-format this whole code. and also explain some parts that's missing
+This is efficient because instead of simulating each step iteratively, we can **sample $\backslash(X_t\backslash)$ at any arbitrary timestep** in closed form using $\backslash(\bar{\alpha}_t\backslash)$.
