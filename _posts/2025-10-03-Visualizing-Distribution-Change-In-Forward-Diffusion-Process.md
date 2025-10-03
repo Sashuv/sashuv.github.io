@@ -13,19 +13,19 @@ In this post, we derive how the **variance changes in a forward diffusion proces
 
 ## Step 1: Initial Data
 
-Let $X_0$ be the initial data. We assume:
+Let \\(X_0\\) be the initial data. We assume:
 
 $$
 X_0 \sim \mathcal{N}(\mu, 1)
 $$
 
-That is, $X_0$ follows a normal distribution with mean $\mu$ and variance 1.
+That is, \\(X_0\\) follows a normal distribution with mean \\(\mu\\) and variance 1.
 
 ---
 
 ## Step 2: Adding Noise
 
-Suppose we add Gaussian noise $\epsilon$ to $X_0$:
+Suppose we add Gaussian noise \\(\epsilon\\) to \\(X_0\\):
 
 $$
 X_1 = X_0 + \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
@@ -43,10 +43,10 @@ This variance increases too quickly, which is undesirable.
 
 ## Step 3: Variance Scheduling
 
-To control the variance growth, we introduce a **variance scheduler** $\beta_t$:
+To control the variance growth, we introduce a **variance scheduler** \\(\beta_t\\):
 
-- $\beta_t$ defines how noise changes over time (linear, cosine, or any schedule).  
-- Typically, $\beta_t$ is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
+- \\(\beta_t\\) defines how noise changes over time (linear, cosine, or any schedule).  
+- Typically, \\(\beta_t\\) is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
 
 We now want the noise to satisfy:
 
@@ -64,13 +64,13 @@ $$
 
 ## Step 4: Scaling Noise and Previous Image
 
-Introduce constants $a, b \in \mathbb{R}$ to scale the previous image and noise:
+Introduce constants \\(a, b \in \mathbb{R}\\) to scale the previous image and noise:
 
 $$
 X_1 = a X_0 + b \epsilon
 $$
 
-If $\epsilon \sim \mathcal{N}(0,1)$, we can scale it to match the desired variance:
+If \\(\epsilon \sim \mathcal{N}(0,1)\\), we can scale it to match the desired variance:
 
 $$
 b \epsilon = \sqrt{\beta_t} \, \epsilon \sim \mathcal{N}(0, \beta_t)
@@ -92,7 +92,7 @@ $$
 X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 $$
 
-- $a$ scales the contribution of the previous image.  
-- $\sqrt{\beta_t} \, \epsilon$ adds noise with the correct variance.  
+- \\(a\\) scales the contribution of the previous image.  
+- \\(\sqrt{\beta_t} \, \epsilon\\) adds noise with the correct variance.  
 
 This ensures that the **variance increases gradually** as noise is added in each step.
