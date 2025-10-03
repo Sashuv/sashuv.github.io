@@ -13,21 +13,21 @@ In this post, we derive how the **variance changes in a forward diffusion proces
 
 ## Initial Setup
 
-Let \(X_0\) be the initial data. We assume:
+Let $X_0$ be the initial data. We assume:
 
 $$
 X_0 \sim \mathcal{N}(\mu, 1)
 $$
 
-That is, \(X_0\) follows a normal distribution with mean \(\mu\) and variance \(1\).
+That is, $X_0$ follows a normal distribution with mean $\mu$ and variance $1$.
 
-Ideally, we want \(X_0\) to follow a normal distribution with mean \(0\) and variance \(1\).
+Ideally, we want $X_0$ to follow a normal distribution with mean $0$ and variance $1$.
 
 ---
 
 ## Adding Noise
 
-Suppose we add Gaussian noise \(\epsilon\) to \(X_0\):
+Suppose we add Gaussian noise $\epsilon$ to $X_0$:
 
 $$
 X_1 = X_0 + \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
@@ -45,10 +45,10 @@ The variance grows too quickly, which is undesirable.
 
 ## Variance Scheduler
 
-To control variance growth, we introduce a **variance scheduler** \(\beta_t\):
+To control variance growth, we introduce a **variance scheduler** $\beta_t$:
 
-- \(\beta_t\) defines how noise changes over time (linear, cosine, or other schedules).  
-- Typically, \(\beta_t\) is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
+- $\beta_t$ defines how noise changes over time (linear, cosine, or other schedules).  
+- Typically, $\beta_t$ is very small (e.g., 0.0001 to 0.02) so that noise is added gradually.
 
 We now want the noise to satisfy:
 
@@ -66,13 +66,13 @@ $$
 
 ## Scaling the Components
 
-Introduce constants \(a, b \in \mathbb{R}\) to scale the previous sample and noise:
+Introduce constants $a, b \in \mathbb{R}$ to scale the previous sample and noise:
 
 $$
 X_1 = a X_0 + b \epsilon
 $$
 
-If \(\epsilon \sim \mathcal{N}(0,1)\), then scaling gives:
+If $\epsilon \sim \mathcal{N}(0,1)$, then scaling gives:
 
 $$
 b \epsilon = \sqrt{\beta_t} \, \epsilon \sim \mathcal{N}(0, \beta_t)
@@ -94,16 +94,16 @@ $$
 X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 $$
 
-- \(a\) scales the contribution of the previous sample.  
-- \(\sqrt{\beta_t} \, \epsilon\) adds noise with the correct variance.  
+- $a$ scales the contribution of the previous sample.  
+- $\sqrt{\beta_t} \, \epsilon$ adds noise with the correct variance.  
 
 This ensures the variance increases gradually as noise is added.
 
 ---
 
-## Finding \(a\)
+## Finding $a$
 
-Now, we want \(\text{Var}(X_1) = 1\).  
+Now, we want $\text{Var}(X_1) = 1$.  
 
 $$
 \begin{aligned}
@@ -114,7 +114,7 @@ $$
 \end{aligned}
 $$
 
-To keep the variance at \(1\):
+To keep the variance at $1$:
 
 $$
 a^2 + \beta_t = 1 \quad \implies \quad a = \sqrt{1 - \beta_t}
@@ -139,7 +139,7 @@ $$
 
 ---
 
-## Introducing \(\alpha_t\)
+## Introducing $\alpha_t$
 
 It is common to define:
 
@@ -155,17 +155,17 @@ $$
 
 This notation is convenient because:
 
-- \(\alpha_t\) directly represents the **retained information** from the previous step.  
-- \(1 - \alpha_t\) is the **noise contribution**.  
-- Products of \(\alpha_t\) across steps (called \(\bar{\alpha}_t\)) make it efficient to compute the distribution of \(X_t\) directly in closed form.
+- $\alpha_t$ directly represents the **retained information** from the previous step.  
+- $1 - \alpha_t$ is the **noise contribution**.  
+- Products of $\alpha_t$ across steps (called $\bar{\alpha}_t$) make it efficient to compute the distribution of $X_t$ directly in closed form.
 
 ---
 
 ## Summary
 
 - Naively adding noise grows variance too quickly.  
-- A scheduler \(\beta_t\) controls noise growth.  
-- Scaling with \(a = \sqrt{1 - \beta_t}\) ensures variance remains stable.  
-- Using \(\alpha_t = 1 - \beta_t\) simplifies notation and allows efficient closed-form expressions for the forward diffusion process.
+- A scheduler $\beta_t$ controls noise growth.  
+- Scaling with $a = \sqrt{1 - \beta_t}$ ensures variance remains stable.  
+- Using $\alpha_t = 1 - \beta_t$ simplifies notation and allows efficient closed-form expressions for the forward diffusion process.
 
 ---
