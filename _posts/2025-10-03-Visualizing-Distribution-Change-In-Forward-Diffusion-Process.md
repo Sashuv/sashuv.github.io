@@ -25,23 +25,61 @@ Ideally, we want $X_0$ to follow a normal distribution with mean $0$ and varianc
 
 ---
 
-## Adding Noise
+In diffusion models, the forward process gradually adds noise to data over several timesteps.  
+At each step, we take the previous state and inject a small amount of Gaussian noise.
 
-Suppose we add Gaussian noise $\epsilon$ to $X_0$:
+Formally, we define a sequence of random variables:
+
+$$
+X_0, X_1, X_2, \dots, X_t
+$$
+
+where $X_0$ is the original data and each subsequent $X_t$ is obtained by adding noise.
+
+---
+
+## Naive approach: adding noise directly
+
+Suppose we add Gaussian noise $epsilon$ at each step:
 
 $$
 X_1 = X_0 + \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 $$
 
-If we add the same variance at every step:
+If we repeat this step, we get:
 
 $$
-\text{Var}(X_1) = \text{Var}(X_0) + \text{Var}(\epsilon) = 1 + 1 = 2
+X_2 = X_1 + \epsilon_2, \quad \epsilon_2 \sim \mathcal{N}(0,1)
 $$
 
-The variance grows too quickly, which is undesirable.
+and so on, until $X_t$.
+
+At the very first step, the variance becomes:
+
+$$
+\mathrm{Var}(X_1) = \mathrm{Var}(X_0) + \mathrm{Var}(\epsilon) = 1 + 1 = 2
+$$
+
+At the next step:
+
+$$
+\mathrm{Var}(X_2) = \mathrm{Var}(X_1) + \mathrm{Var}(\epsilon_2) = 2 + 1 = 3
+$$
+
+By repeating this process, the variance grows linearly with the number of steps.
 
 ---
+
+## Why is this a problem?
+
+Such a rapid growth in variance causes the signal to be overwhelmed by noise too quickly.  
+This makes the forward process unstable and prevents the model from learning a meaningful reverse process.
+
+To avoid this, we need a **variance scheduler** that controls how much noise is added at each step.  
+Instead of adding full unit-variance noise every time, we add only a small fraction, gradually increasing the variance over many steps.
+
+---
+
 
 ## Variance Scheduler
 
@@ -66,36 +104,52 @@ $$
 
 ## Scaling the Components
 
-Introduce constants $a, b \in \mathbb{R}$ to scale the previous sample and noise:
+We introduce constants $\(a, b \in \mathbb{R}\)$ to scale the contribution of the previous sample and the noise:
 
 $$
 X_1 = a X_0 + b \epsilon
 $$
 
-If $\epsilon \sim \mathcal{N}(0,1)$, then scaling gives:
+where $\(\epsilon \sim \mathcal{N}(0,1)\)$.
+
+
+---
+
+### Finding \(b\)
+
+We want the noise term to contribute variance $\(\beta_t\)$.  
+Currently, since $\(\epsilon \sim \mathcal{N}(0,1)\)$, its variance is 1.  
+To scale it properly, we set:
 
 $$
-b \epsilon = \sqrt{\beta_t} \, \epsilon \sim \mathcal{N}(0, \beta_t)
+b \epsilon = \sqrt{\beta_t} \ \epsilon
 $$
 
-since
+so that
 
 $$
-\text{Var}(\sqrt{\beta_t} \, \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t
+\text{Var}(b \epsilon) = \text{Var}(\sqrt{\beta_t} \ \epsilon) = \beta_t \cdot \text{Var}(\epsilon) = \beta_t
+$$
+
+Thus:
+
+$$
+b = \sqrt{\beta_t}
 $$
 
 ---
+
 
 ## Forward Diffusion Step
 
 Thus, the properly scaled forward diffusion step is:
 
 $$
-X_1 = a X_0 + \sqrt{\beta_t} \, \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
+X_1 = a X_0 + \sqrt{\beta_t} \ \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 $$
 
 - $a$ scales the contribution of the previous sample.  
-- $\sqrt{\beta_t} \, \epsilon$ adds noise with the correct variance.  
+- $\sqrt{\beta_t} \ \epsilon$ adds noise with the correct variance.  
 
 This ensures the variance increases gradually as noise is added.
 
@@ -139,7 +193,7 @@ $$
 
 ---
 
-## Introducing $\alpha_t$
+## Introducing $\alpha_t$ and Cumulative Product
 
 It is common to define:
 
@@ -147,25 +201,39 @@ $$
 \alpha_t = 1 - \beta_t
 $$
 
-so that the forward step becomes:
+so that the forward step can be written as:
 
 $$
-X_t = \sqrt{\alpha_t} \, X_{t-1} + \sqrt{1 - \alpha_t} \, \epsilon_t
+X_t = \sqrt{\alpha_t} \, X_{t-1} + \sqrt{1 - \alpha_t} \, \epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,1)
 $$
-
-This notation is convenient because:
-
-- $\alpha_t$ directly represents the **retained information** from the previous step.  
-- $1 - \alpha_t$ is the **noise contribution**.  
-- Products of $\alpha_t$ across steps (called $\bar{\alpha}_t$) make it efficient to compute the distribution of $X_t$ directly in closed form.
 
 ---
 
-## Summary
+### Cumulative Product: $\bar{\alpha}_t$
 
-- Naively adding noise grows variance too quickly.  
-- A scheduler $\beta_t$ controls noise growth.  
-- Scaling with $a = \sqrt{1 - \beta_t}$ ensures variance remains stable.  
-- Using $\alpha_t = 1 - \beta_t$ simplifies notation and allows efficient closed-form expressions for the forward diffusion process.
+To compute the distribution of $X_t$ efficiently, we define the cumulative product of $\alpha_t$:
+
+$$
+\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s
+$$
+
+This represents the **total retained signal** from the original data $X_0$ after $t$ steps.
 
 ---
+
+### Closed-Form Expression for $X_t$
+
+Using the cumulative product, we can write $X_t$ in **closed form**:
+
+$$
+X_t = \sqrt{\bar{\alpha}_t} \, X_0 + \sqrt{1 - \bar{\alpha}_t} \, \tilde{\epsilon}, \quad \tilde{\epsilon} \sim \mathcal{N}(0,1)
+$$
+
+Here:
+
+- $\sqrt{\bar{\alpha}_t} \, X_0$ is the fraction of the original signal retained after $t$ steps.  
+- $\sqrt{1 - \bar{\alpha}_t} \, \tilde{\epsilon}$ is the total accumulated noise.  
+
+This formula is extremely convenient because it allows us to **sample $X_t$ directly** without iterating through all the intermediate steps.
+
+
